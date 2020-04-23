@@ -1,9 +1,0 @@
-function [rvi] = init_PRO(mu, ri)
-% Gives initial conditions for a PRO orbit
-r = sqrt(ri(1)^2 + ri(2)^2 + ri(3)^2);
-wz = sqrt(mu/r^3);
-
-vi = [0;-2*wz*ri(1);0];
-
-
-rvi = [ri;vi];
