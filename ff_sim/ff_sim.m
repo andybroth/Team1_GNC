@@ -4,7 +4,7 @@ clear all;
 close all;
 clc;
 
-
+setPath;
 %% define constants
 defineUnits;
 defineConstants;
@@ -65,12 +65,12 @@ for ii = 1:N
     state(ii).angRate = angRate(:,ii);
     state(ii).stateAtt  = [quatRef_L_I; angRate(:,ii)];
     
-    % relative orbital elements
-    if ii == 1
-        roe = zeros(6,1);
-    else
-        roe = relOrbElem(state(1).stateAbs,state(ii).stateAbs,EARTH_GRAV_CONST);
-    end
+%     % relative orbital elements
+%     if ii == 1
+%         roe = zeros(6,1);
+%     else
+%         roe = relOrbElem(state(1).stateAbs,state(ii).stateAbs,EARTH_GRAV_CONST);
+%     end
     
 end
 
@@ -125,8 +125,9 @@ end
 %% plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure('Name','Absolute Position')
-drawSphere(EARTH_RADIUS); hold on;
-plot3(out(1).stateAbs(1,:),out(1).stateAbs(2,:),out(1).stateAbs(3,:));
+hold on;
+drawSphere(EARTH_RADIUS);
+plot3(out(1).stateAbs(1,:),out(1).stateAbs(2,:),out(1).stateAbs(3,:),'r');
 axis('equal'); 
 xlabel('x');
 ylabel('y');
