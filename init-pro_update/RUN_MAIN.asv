@@ -12,12 +12,12 @@ clear all;
 clc;
 close all;
 
-%% Known constants
+% Known constants
 mhu = 398600; %Gravitational constant of Earth in km^3/s^2
 Re = 6378; % Radius of Earth  in km
 
 % User edited variables
-N = 200;                      % Number of satellites
+N = 100;                      % Number of satellites
 center = [0,0,0];           % Location of chief (m)
 mind = 15;                  % min distance from center (m)
 maxd = 40;                 % max distance from center (m)
@@ -56,6 +56,7 @@ statePRO = zeros(N, 556, 6);
 deltavs = zeros(N, 1);
 i = 1;
 miss = 0;
+
 if plot_tag
     % Plots ejection orbits
     figure(1);
@@ -103,11 +104,11 @@ while i <= N
         % Get the position of state checked for misses
         miss_r(miss,:) = state_ejec(i,1:3);
         % Get the distances of the missed sat IC
-        miss_dist(miss,1) = norm(state_ejec(i,1:3));
+        miss_dist(miss) = norm(state_ejec(i,1:3));
         state_ejec(i,:) = generate_random_sats(center, 1, mind, maxd, minv, maxv,radial_velocity_switch);
     end
 end
-%%
+
 PRO_stats(deltavs, statePRO, N, period, miss, miss_v,miss_r, total_v);
 
 %% Generates a table of characteristics (dist vs vel) for missed ejections
@@ -124,28 +125,11 @@ distranges = [mind, mind + diffr, mind+2*diffr, mind+3*diffr, mind+4*diffr, maxd
 diffv = (maxv - minv)/3;
 vranges = [minv, minv + diffv,minv + 2*diffv, maxv+1];
 %[bincounts,ind] = histc(miss_dist,binranges);
-
-values = zeros(3,5);
 for i = 1:3
     for j = 1:5
-        for index = 1:miss
-        end
-    end
-end
-
-%%
-figure;
-subplot(1,2,1);
-hist3([miss_dist,miss_mag_vel],[50,30]);
-subplot(1,2,2);
-counts = hist3([miss_dist,miss_mag_vel],[50,30]);
-imshow(counts,[]);
-colormap(hot(256));
-colorbar;
 
 
-
-%% Sets up plot
+% Sets up plot
 if plot_tag
     for i = 1:N
         plot3(state_ejec(i,1), state_ejec(i,2), state_ejec(i,3), 'g*', 'DisplayName',"Ejection Location "+i);

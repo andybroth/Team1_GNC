@@ -1,4 +1,4 @@
-function [] = PRO_stats(deltavs, statePRO, N, period, miss, miss_v, total_v)
+function [] = PRO_stats(deltavs, statePRO, N, period, miss, miss_v,miss_r,total_v)
 min_d = zeros(N,1);
 max_d = zeros(N,1);
 dist = zeros(N,556);
