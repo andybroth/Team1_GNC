@@ -43,16 +43,16 @@ end
 end
 
 function [min_d, max_d] = minmax_dist(states,options)
-px = abs(states(1));
-py = states(2);
-pz = abs(states(3));
+    px = abs(states(1));
+    py = states(2);
+    pz = abs(states(3));
 
-x = @(t) px*sin(t);
-y = @(t) py+2.*px.*cos(t);
-z = @(t)pz.*sin(t);
-dist = @(t) sqrt((px+pz)^2*sin(t)^2 + y(t)^2);
-neg_dist = @(t) -1 * dist(t);
+    x = @(t) px*sin(t);
+    y = @(t) py+2.*px.*cos(t);
+    z = @(t)pz.*sin(t);
+    dist = @(t) sqrt((px+pz)^2*sin(t)^2 + y(t)^2);
+    neg_dist = @(t) -1 * dist(t);
 
-min_d = dist(fminbnd(dist, 0,pi,options));
-max_d = dist(fminbnd(neg_dist,0,pi,options));
+    min_d = dist(fminbnd(dist, 0,pi,options));
+    max_d = dist(fminbnd(neg_dist,0,pi,options));
 end

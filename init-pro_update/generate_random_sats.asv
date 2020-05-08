@@ -11,25 +11,28 @@
 function X = generate_random_sats(center, N, mind, maxd, minv, maxv, rad_out)
     % Min/max time to check position
     % based on position and velocity constraints
+
     v_mag = rand(1,N,'double')*(maxv - minv)+ minv;       % 1xN vector m/s
+    min_t = mind/minv;
+    max_t = maxd/maxv;
+    time = rand*(max_t-min_t)+min_t;   % s
+    
+    % Calculate the radius for spherical coords
+    r = time*v_mag; % 1xN vector of radius in m
+    disp(" Radius: ");
+    disp(r);
+    
     X = zeros(N,6) ;
     for i=1:N
-        min_t = mind/v_mag(i);
-        max_t = maxd./v_mag(i);
-        time = rand.*(max_t-min_t)+min_t;   % s
-
-        % Calculate the radius for spherical coords
-        r = time*v_mag(i); % 1xN vector of radius in m
-
         % random xy angle
         theta = randsample(linspace(0,2*pi),1);
         % random z -> xy angle
         phi = randsample(linspace(0,pi),1);
 
         % Convert to cartesian coords
-        Px = center(1)+r*cos(theta)*sin(phi) ;
-        Py = center(2)+r*sin(theta)*sin(phi) ;
-        Pz = center(3)+r*cos(phi) ;
+        Px = center(1)+r(i)*cos(theta)*sin(phi) ;
+        Py = center(2)+r(i)*sin(theta)*sin(phi) ;
+        Pz = center(3)+r(i)*cos(phi) ;
         
         % Radially out velocity switch
         switch rad_out

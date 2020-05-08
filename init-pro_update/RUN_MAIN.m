@@ -17,7 +17,7 @@ mhu = 398600; %Gravitational constant of Earth in km^3/s^2
 Re = 6378; % Radius of Earth  in km
 
 % User edited variables
-N = 200;                      % Number of satellites
+N = 10000;                      % Number of satellites
 center = [0,0,0];           % Location of chief (m)
 mind = 15;                  % min distance from center (m)
 maxd = 40;                 % max distance from center (m)
@@ -37,7 +37,6 @@ plot_tag = 0;               % Makes plot for first iteration - 1, plot; 0, no pl
 % 1 - radially outward from cygnus
 % output - [x,y,z,xdot,ydot,zdot]; (m,m,m,m/s,m/s,m/s)
 state_ejec = generate_random_sats(center, N, mind, maxd, minv, maxv,radial_velocity_switch);
-
 
 % write distance to console
 % xyz = state_ejec(1:3);
@@ -142,8 +141,6 @@ counts = hist3([miss_dist,miss_mag_vel],[50,30]);
 imshow(counts,[]);
 colormap(hot(256));
 colorbar;
-
-
 
 %% Sets up plot
 if plot_tag
