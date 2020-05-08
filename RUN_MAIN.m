@@ -12,6 +12,9 @@ clear all;
 clc;
 close all;
 
+% Set Path
+pathCurrDir = pwd;
+addpath(genpath([pathCurrDir,'/library']));
 %% Known constants
 mhu = 398600; %Gravitational constant of Earth in km^3/s^2
 Re = 6378; % Radius of Earth  in km
