@@ -14,7 +14,7 @@ mhu = 398600; %Gravitational constant of Earth in km^3/s^2
 Re = 6378; % Radius of Earth  in km
 
 % User edited variables
-N = 50000;                      % Number of satellites
+N = 5;                      % Number of satellites
 center = [0,0,0];           % Location of chief (m)
 mind = 15;                  % min distance from center (m)
 maxd = 40;                 % max distance from center (m)
@@ -66,52 +66,86 @@ disp("Average delta v (m/s): "+dv_total/N);
 %% Propagates a random IC forward looking for recovergence period
 
 loop = 2*pi*a_chief;
-tinits = [2 12 24 36 48].*60.*6;
-tmax = (1:7).*24.*60.*6;
-t0 = 1;
-fileID = fopen('return_data.txt','w');
-while t0 <= length(tinits)
-    tend = 1;
-    while tend <= length(tmax)
-        while tinits(t0) >= tmax(tend)
-            tend = tend + 1;
-        end
-        returns = zeros(N, 1);
-        dv = zeros(N,1);
-        f = waitbar(0,"Loading");
-        for j = 1:N
-            t = tinits(t0);
-            states = [];
-            while t < tmax(tend)
-                states(1:6) = exppA_state(n,t*10)*state_ejec(j,:)';
-                if abs(states(2)) > loop/2
-                    states(2) = mod(states(2),loop);
-                end
-                if states(2) > loop/2
-                    states(2) = states(2) - loop;
-                end
+tinits = [2 12 24 36 48].*60.*60./10;
+tmax = (1:6).*24.*60.*60./10;
+returns = zeros(length(tinits), length(tmax), N, 1);
+dv = zeros(length(tinits), length(tmax), N, 1);
+time = tinits(1):tmax(end);
 
-                if norm(states(1:3)) < 200
-                    returns(j) = t*10;
+fileID = fopen('return_data.txt','w');
+f = waitbar(0,"Loading");
+for j = 1:N
+    states = zeros(length(time),6);
+    for t = time
+        states(t,:) = exppA_state(n, t*10)*state_ejec(j,:)';
+        if abs(states(t,2)) > loop/2
+            states(t,2) = mod(states(t,2),loop);
+        end
+        if states(t,2) > loop/2
+            states(t,2) = states(t,2) - loop;
+        end
+        if norm(squeeze(states(t,1:3))) < pro_max && t > tinits(end)
+            break;
+        end
+    end
+    t0 = 1;
+    while t0 <= length(tinits)
+        tend = 1;
+        while tend <= length(tmax)
+            while tinits(t0) >= tmax(tend)
+                tend = tend + 1;
+            end
+            t = tinits(t0);
+            while t < tmax(tend)
+                if norm(states(t,1:3)) < pro_max
+                    returns(t0, tend, j) = t*10;
                     t = t + tmax(tend);
                 else
                     t = t + 1;
                 end
             end
-            if returns(j) == 0
+            if returns(t0, tend, j) == 0
                 vy = state_ejec(j,5);
-                vy_return = vy*tinits(t0)/(tmax(tend)-tinits(t0));
-                dv(j) = abs(vy) + vy_return;
+%                 if sign(vy) == 1
+%                     [vymin,vmin] = min(states(t0:t0+400,5));
+%                 else
+%                     [vymin,vmin] = max(states(t0:t0+400,5));
+%                 end
+%                 vy_return = vy*vmin/(tmax(tend)-vmin);
+%                 dv(t0, tend, j) = abs(vymin - vmin);
+                if abs(vy*tinits(t0)) < abs(abs(vy*tinits(t0))-loop)
+                    vy_return = vy*tinits(t0)/(tmax(tend)-tinits(t0));
+                    dv(t0, tend, j) = abs(vy) + vy_return;
+                else
+                    vy_return = abs(vy*tinits(t0)-loop)/(tmax(tend)-tinits(t0));
+                    dv(t0, tend, j) = abs(abs(vy_return) - abs(vy));
+                end
             end
-            if mod(j,N/100) == 0
-                waitbar(j/N, f, 100*j/N+"% Done with start "+tinits(t0)/360+"hr, end "+tmax(tend)/(24*360)+"days");
-            end
+            tend = tend + 1;
         end
-        t1 = "Start: "+tinits(t0)/360+"hr, end: "+tmax(tend)/(24*360)+"days";
-        t2 = "Returns with no firing: "+sum(returns > 0)*100/N+"%";
-        t3 = "Avg Delta v of firing Cubesats (m/s): "+sum(dv)/sum(dv>0);
-        t4 = "Avg Delta v over all Cubesats  (m/s): "+sum(dv)/N;
-        t5 = "Max Delta v impulse            (m/s): "+max(dv);
+        t0 = t0 + 1;
+    end
+    if mod(j,N/100) == 0
+        waitbar(j/N, f, 100*j/N+"% Done");
+    end
+end
+data = zeros(length(tinits),length(tmax),4);
+fprintf(fileID, "Total Runs: "+N);
+for t0 = 1:length(tinits)
+    tend = 1;
+    while tend <= length(tmax)
+        while tinits(t0) >= tmax(tend)
+            tend = tend + 1;
+        end
+        data(t0, tend, 1) = sum(returns(t0, tend,:) > 0)*100/N;
+        data(t0, tend, 2) = sum(dv(t0, tend,:))/sum(dv(t0,tend,:)>0);
+        data(t0, tend, 3) = sum(dv(t0, tend, :))/N;
+        data(t0, tend, 4) = max(dv(t0, tend, :));
+        t1 = "Start: "+tinits(t0)/360+"hr, End: "+tmax(tend)/(24*360)+"days";
+        t2 = "Returns with no firing: "+data(t0,tend,1);
+        t3 = "Avg Delta v of firing Cubesats (m/s): "+data(t0, tend, 2);
+        t4 = "Avg Delta v over all Cubesats  (m/s): "+data(t0, tend, 3);
+        t5 = "Max Delta v impulse            (m/s): "+data(t0, tend, 4);
         endline = "\r\n";
         disp(t1);
         disp(t2);
@@ -125,12 +159,12 @@ while t0 <= length(tinits)
         fprintf(fileID, t4+endline);
         fprintf(fileID, t5+endline);
         fprintf(fileID, endline);
-        close(f);
         tend = tend + 1;
     end
-    t0 = t0 + 1;
 end
+close(f)
 fclose(fileID);
+writematrix(data, 'data.xls');
 %{
 count2 = 0;
 count3 = 0;
